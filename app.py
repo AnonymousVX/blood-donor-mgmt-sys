@@ -1,42 +1,29 @@
 
-# IPv4-only DNS fix
 import socket
-orig_getaddrinfo = socket.getaddrinfo
-def ipv4_only_getaddrinfo(*args, **kwargs):
-    return [ai for ai in orig_getaddrinfo(*args, **kwargs) if ai[0] == socket.AF_INET]
-socket.getaddrinfo = ipv4_only_getaddrinfo
+socket.getaddrinfo = lambda *args, **kwargs: [
+    ai for ai in socket.__dict__['getaddrinfo'](*args, **kwargs)
+    if ai[0] == socket.AF_INET
+]
 
-# Flask + PostgreSQL
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import psycopg2
+import requests
+import os
 
-# Flask app setup
+# Flask setup
 app = Flask(__name__)
 CORS(app)
 
-# Supabase PostgreSQL DB credentials (IPv4-Compatible Host)
-DB_HOST = 'aws-0-ap-south-1.pooler.supabase.com'
-DB_NAME = 'postgres'
-DB_USER = 'postgres.aabrngetuhjtiwzbpxyu'
-DB_PASSWORD = 'VEDANTrj@0016'
-DB_PORT = '5432'
+# Supabase REST config
 
-# Connect to Supabase PostgreSQL
-try:
-    conn = psycopg2.connect(
-        host=DB_HOST,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        port=DB_PORT
-    )
-    print("✅ Database connection established.")
-except Exception as e:
-    print("❌ Database connection failed:", e)
-    exit(1)
+SUPABASE_URL = 'https://aabrngetuhjtiwzbpxyu.supabase.co'
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhYnJuZ2V0dWhqdGl3emJweHl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNTI3MDgsImV4cCI6MjA1OTYyODcwOH0.bV9xzubVfIJDomKkevaDCdbt-3xug3gjfHk4OP0JT6M'
 
-# -------------------- ROUTES -------------------- #
+HEADERS = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': f'Bearer {SUPABASE_KEY}',
+    'Content-Type': 'application/json'
+}
 
 @app.route('/')
 def home():
@@ -45,71 +32,37 @@ def home():
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
-    name = data.get('name')
-    age = data.get('age')
-    gender = data.get('gender')
-    bloodgroup = data.get('bloodgroup')
-    contact = data.get('contact')
-    city = data.get('city')
-
-    if not all([name, age, gender, bloodgroup, contact, city]):
+    required = ['name', 'age', 'gender', 'bloodgroup', 'contact', 'city']
+    if not all(data.get(field) for field in required):
         return jsonify({"error": "Please fill all fields."}), 400
 
     try:
-        with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO donors (name, age, gender, bloodgroup, contact, city)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (name, age, gender, bloodgroup, contact, city))
-        conn.commit()
-        return jsonify({"message": "✅ Donor registered successfully!"}), 201
+        res = requests.post(f"{SUPABASE_URL}/rest/v1/donors", headers=HEADERS, json=data)
+        if res.status_code in [200, 201]:
+            return jsonify({"message": "✅ Donor registered successfully!"}), 201
+        return jsonify({"error": res.json()}), res.status_code
 
     except Exception as e:
-        conn.rollback()  # Important: reset failed transaction state
-        print("Database error:", e)
-        return jsonify({"error": "❌ Something went wrong."}), 500
+        print("Supabase error:", e)
+        return jsonify({"error": "❌ Registration failed."}), 500
 
 @app.route('/donors', methods=['GET'])
 def get_donors():
     city = request.args.get('city')
+    query = f"?city=eq.{city}" if city else ""
     try:
-        with conn.cursor() as cur:
-            if city:
-                cur.execute("SELECT * FROM donors WHERE city = %s", (city,))
-            else:
-                cur.execute("SELECT * FROM donors")
-            donors = cur.fetchall()
-
-        donor_list = [
-            {
-                "id": row[0],
-                "name": row[1],
-                "age": row[2],
-                "gender": row[3],
-                "bloodgroup": row[4],
-                "contact": row[5],
-                "city": row[6]
-            } for row in donors
-        ]
-        return jsonify(donor_list)
-
+        res = requests.get(f"{SUPABASE_URL}/rest/v1/donors{query}", headers=HEADERS)
+        return jsonify(res.json())
     except Exception as e:
-        conn.rollback()
-        print("Error fetching donors:", e)
-        return jsonify({"error": "Failed to fetch donors."}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/cities')
 def get_cities():
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT DISTINCT city FROM donors ORDER BY city;")
-            rows = cur.fetchall()
-        cities = [row[0] for row in rows]
+        res = requests.get(f"{SUPABASE_URL}/rest/v1/donors?select=city", headers=HEADERS)
+        cities = sorted({d['city'] for d in res.json() if d.get('city')})
         return jsonify(cities)
-
     except Exception as e:
-        conn.rollback()
-        print("Error fetching cities:", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/donors')
@@ -117,30 +70,14 @@ def get_donors_by_city():
     city = request.args.get('city')
     if not city:
         return jsonify({"error": "City not provided"}), 400
-
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT name, bloodgroup, contact FROM donors WHERE city = %s", (city,))
-            donors = cur.fetchall()
-
-        donor_list = [
-            {"name": d[0], "bloodgroup": d[1], "contact": d[2]}
-            for d in donors
-        ]
-        return jsonify(donor_list)
-
+        res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/donors?city=eq.{city}&select=name,bloodgroup,contact",
+            headers=HEADERS
+        )
+        return jsonify(res.json())
     except Exception as e:
-        conn.rollback()
-        print("Error fetching city donors:", e)
         return jsonify({"error": str(e)}), 500
-
-# -------------------- MAIN -------------------- #
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-app = Flask(__name__)  # already done
-
-# Add this at the end:
-if __name__ == "__main__":
-    app.run()
