@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const donorResults = document.getElementById('donorResults');
 
   // Load cities from backend
-  fetch('/api/cities')
+  fetch('https://blood-donor-mgmt-sys.onrender.com/api/cities')   
     .then(res => res.json())
     .then(cities => {
       cities.forEach(city => {
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    fetch(`/api/donors?city=${encodeURIComponent(selectedCity)}`)
+    fetch(`https://blood-donor-mgmt-sys.onrender.com/api/donors?city=${encodeURIComponent(selectedCity)}`)      
       .then(res => res.json())
       .then(donors => {
         donorResults.innerHTML = '<h3>Matching Donors:</h3>';

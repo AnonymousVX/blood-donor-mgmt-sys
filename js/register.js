@@ -29,7 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Send data to Flask API
-    fetch('http://localhost:5000/register', {
+    
+fetch('https://blood-donor-mgmt-sys.onrender.com/register', {
+
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
