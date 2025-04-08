@@ -139,3 +139,8 @@ def get_donors_by_city():
 if __name__ == '__main__':
     app.run(debug=True)
 
+app = Flask(__name__)  # already done
+
+# Add this at the end:
+if __name__ == "__main__":
+    app.run()
