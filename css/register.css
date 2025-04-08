@@ -1,0 +1,144 @@
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #ffffff;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+header {
+  background-color: #d90429;
+  color: white;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 2.2rem;
+}
+
+/* Registration Form Section */
+
+.registration-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* previously: center */
+  padding: 60px 20px; /* increase top padding to push it lower */
+  margin-top: 20px; /* optional extra push */
+}
+
+
+.registration-form {
+  background-color: #f9f9f9;
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 10px;
+  border-top: 5px solid #d90429;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.registration-form h2 {
+  color: #d90429;
+  margin-bottom: 25px;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.registration-form label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 15px;
+}
+
+.registration-form input,
+.registration-form select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.registration-form button {
+  width: 100%;
+  background-color: #d90429;
+  color: white;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.registration-form button:hover {
+  background-color: #a0031f;
+}
+
+/* Footer */
+
+
+footer {
+  background-color: #d90429;
+  color: white;
+  text-align: center;
+  padding: 30px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  width: 100%;
+  margin-top: 60px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  border-top: 5px solid #b40320;
+}
+
+
+/* How It Works Section */
+
+.how-it-works {
+  padding: 40px 20px;
+  background: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+              url('../images/how-it-works.png'); /* <-- Adjust path if needed */
+  background-size: cover;
+  background-position: center;
+  border-bottom: 3px solid #d90429;
+  text-align: center;
+}
+
+
+.how-it-works h2 {
+  font-size: 1.8rem;
+  color: #d90429;
+  margin-bottom: 20px;
+}
+
+.how-it-works ol {
+  list-style-position: inside;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 400px;
+  text-align: left;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.how-it-works li {
+  margin-bottom: 10px;
+  padding-left: 10px;
+}
