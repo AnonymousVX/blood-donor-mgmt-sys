@@ -1,6 +1,4 @@
 
-// js/index.js
-
 // ==============================
 // FAQ toggle functionality
 // ==============================
@@ -31,8 +29,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Call backend API
-    fetch(`http://localhost:5000/api/donors?city=${encodeURIComponent(location)}`)
+    // ✅ Call backend API on Render
+    fetch(`https://blood-donor-mgmt-sys.onrender.com/api/donors?city=${encodeURIComponent(location)}`)
       .then(res => res.json())
       .then(data => {
         // Filter results by blood group
